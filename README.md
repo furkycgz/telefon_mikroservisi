@@ -110,7 +110,7 @@ Server: db
 
 Username: phone_user
 
-Password: phone_pass
+
 
 Database: phone_db
 
