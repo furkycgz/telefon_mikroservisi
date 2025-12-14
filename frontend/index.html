@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Telefon Doğrulama</title>
+  <style>
+    body{font-family:Arial, sans-serif; max-width:520px; margin:40px auto;}
+    input,button{width:100%; padding:10px; margin:6px 0; font-size:16px;}
+    .ok{color:green;} .bad{color:#b00020;}
+    .box{border:1px solid #ddd; padding:16px; border-radius:10px;}
+  </style>
+</head>
+<body>
+  <h2>Kayıt Formu</h2>
+  <div class="box">
+    <input id="name" placeholder="Ad Soyad" />
+    <input id="email" placeholder="E-posta" />
+    <input id="phone" placeholder="Telefon (6 basamak)" maxlength="6" />
+    <button id="submit">Gönder</button>
+    <p id="msg"></p>
+  </div>
+
+  <script>
+    const msg = document.getElementById('msg');
+    document.getElementById('submit').addEventListener('click', async () => {
+      msg.className = '';
+      msg.textContent = 'Gönderiliyor...';
+
+      const payload = {
+        name: document.getElementById('name').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        phone: document.getElementById('phone').value.trim()
+      };
+
+      try {
+        const res = await fetch('/api/registration', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const ct = res.headers.get('content-type') || '';
+        let data;
+        if (ct.includes('application/json')) {
+          data = await res.json();
+        } else {
+          const text = await res.text();
+          throw new Error(`Sunucu JSON yerine ${ct || 'bilinmeyen tür'} döndü. Durum: ${res.status}. İçerik: ${text.slice(0,120)}...`);
+        }
+
+        if (res.ok && data.status === 'accepted') {
+          msg.className = 'ok';
+          msg.textContent = data.message;
+        } else {
+          msg.className = 'bad';
+          msg.textContent = data.message || 'Hata oluştu';
+        }
+      } catch (e) {
+        msg.className = 'bad';
+        msg.textContent = 'Bağlantı hatası: ' + e.message;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: phone-microservice-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: phone_db
+      MYSQL_USER: phone_user
+      MYSQL_PASSWORD: phone_pass
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - db_data:/var/lib/mysql
+
+  api:
+    build: ./api
+    container_name: phone-microservice-api
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: local
+      APP_KEY: base64:placeholder
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: phone_db
+      DB_USERNAME: phone_user
+      DB_PASSWORD: phone_pass
+
+  frontend:
+    build: ./frontend
+    container_name: phone-microservice-frontend
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phone-microservice-phpmyadmin
+    restart: always
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: phone_user
+      PMA_PASSWORD: phone_pass
+    depends_on:
+      - db
+
+volumes:
+  db_data:
